@@ -1,0 +1,44 @@
+version: '3.2'
+
+services:
+  tika-worker:
+    volumes:
+      # Bind mound the dir for development
+      - ./tika-worker:/app
+
+  tika-server:
+    ports:
+      - "9998:9998"
+
+  redis-backbone:
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    ports:
+      - ${ES_PORT}:9200
+
+  kibana-setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    depends_on:
+      - elasticsearch
+    command: >
+      bash -c '
+        echo "Waiting for Elasticsearch availability";
+        until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do echo "Waiting for elasticsearch"; sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST -u elastic:${ELASTIC_PASSWORD} -H "Content-Type: application/json" http://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "Password set for kibana_system"
+      '
+
+  kibana:
+    depends_on:
+      - kibana-setup
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_STACK_VERSION}
+    ports:
+      - ${KIBANA_PORT}:5601
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}

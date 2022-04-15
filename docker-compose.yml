@@ -1,0 +1,30 @@
+version: '3.2'
+
+services:
+  cloud-poller:
+    build: ./cloud-poller
+    environment:
+      - PORT=${CLOUD_POLLER_PORT}
+
+  tika-worker:
+    build: ./tika-worker
+    environment:
+      - CLOUD_POLLER_SERVICE=http://cloud-poller:${CLOUD_POLLER_PORT}
+
+  tika-server:
+    image: apache/tika:${TIKA_VERSION}
+
+  redis-backbone:
+    image: redis:6.2.6
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    ports:
+      - ${ES_PORT}:9200
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      discovery.type: single-node
+      xpack.security.http.ssl.enabled: false

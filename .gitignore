@@ -1,0 +1,7 @@
+.env
+.COMMAND
+
+**/.git
+**/node_modules
+**/dist
+**/.vscode
