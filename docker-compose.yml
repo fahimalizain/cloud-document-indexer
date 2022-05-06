@@ -1,15 +1,15 @@
 version: '3.2'
 
 services:
-  cloud-poller:
-    build: ./cloud-poller
+  cloud-storage-poller:
+    build: ./cloud-storage-poller
     environment:
-      - PORT=${CLOUD_POLLER_PORT}
+      - PORT=${CLOUD_STORAGE_POLLER_PORT}
 
   tika-worker:
     build: ./tika-worker
     environment:
-      - CLOUD_POLLER_SERVICE=http://cloud-poller:${CLOUD_POLLER_PORT}
+      - CLOUD_STORAGE_POLLER_SERVICE=http://cloud-storage-poller:${CLOUD_STORAGE_POLLER_PORT}
 
   tika-server:
     image: apache/tika:${TIKA_VERSION}
